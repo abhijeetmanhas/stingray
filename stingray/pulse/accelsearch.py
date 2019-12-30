@@ -23,17 +23,34 @@ def pds_from_fft(spectr, nph):
     return (spectr * spectr.conj()).real * 2 / nph
 
 
-def probability_of_power(level, nbins, n_summed_spectra=1, n_rebin=1):
+def probability_of_power(level, ntrials=1, n_summed_spectra=1, n_rebin=1):
     r"""Give the probability of a given power level in PDS.
 
     Return the probability of a certain power level in a Power Density
     Spectrum of nbins bins, normalized a la Leahy (1983), based on
     the 2-dof :math:`{\chi}^2` statistics, corrected for rebinning (n_rebin)
     and multiple PDS averaging (n_summed_spectra)
-    """
 
-    epsilon = nbins * stats.chi2.sf(level * n_summed_spectra * n_rebin,
-                                    2 * n_summed_spectra * n_rebin)
+    Parameters
+    ----------
+    level : float or array of floats
+        The power level for which we are calculating the probability
+    ntrials : int
+        The number of *independent* trials
+    n_summed_spectra : int
+        The number of power density spectra that have been averaged to obtain
+        this power level
+    n_rebin : int
+        The number of power density bins that have been averaged to obtain
+        this power level
+
+    Returns
+    -------
+    epsilon : float
+        The probability value(s)"""
+
+    epsilon = 1 - stats.chi2.cdf(level * n_summed_spectra * n_rebin,
+                                 2 * n_summed_spectra * n_rebin) ** ntrials
     return epsilon
 
 
