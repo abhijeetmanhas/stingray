@@ -47,11 +47,16 @@ def convolve_ols(a, b):
     >>> h = np.random.randint(-20, 20, size=(nh, nh)) + 1j * \\
     ...         np.random.randint(-20, 20, size=(nh, nh))
     >>> ref = fftconvolve(x, h, mode='same')
-    >>> y = convolve(x, h)
+    >>> y = convolve(x, h) # +doctest:ellipsis
+    ...
     >>> np.allclose(ref, y)
     True
     """
-    return ols(a, b, size=[max(4 * b.size, 100000)], rfftn=fftn, irfftn=ifftn)
+    return ols(a, b,
+               size=[
+                   max(4 * x, int(pow(100000, 1/len(b.shape))))
+                   for x in b.shape],
+               rfftn=fftn, irfftn=ifftn)
 
 
 def convolve(a, b, mode='ols'):
