@@ -28,6 +28,19 @@ def p_multitrial_from_single_trial(p1, n):
                           n
     P (k ≥ 1) =   1 -   (   ) (1 - p)^n = 1 - (1 - p)^n
                           0
+
+    Parameters
+    ----------
+    p1 : float or array of floats
+        The success probability in each trial
+    n : int
+        The number of trials
+
+    Return value
+    ------------
+    pn : float or array of float (same size as p1)
+        The probability of at least one success in ``n`` trials, each with
+        probability ``p1``
     """
     return 1 - (1 - np.longdouble(p1))**np.longdouble(n)
 
@@ -35,14 +48,14 @@ def p_multitrial_from_single_trial(p1, n):
 def p_single_trial_from_p_multitrial(pn, n):
     """Calculate a single-trial probability from a multi-trial one.
 
-    How to calculate a single-trial probability when we only have
-    a multi-trial one? This might be the case because, e.g., we
-    want to have a 10% probability of detecting a signal in an
-    entire power spectrum, and we need to correct the detection
-    level accordingly.
+    Let us imagine that we want to set the detection level in a search
+    so that we have a 10% probability that the noise powers produce a given
+    power in the entire power spectrum. We have a single-trial probability of
+    _epsilon_, meaning that we expect the noise powers to produce the wanted
+    power in about 10\% of the cases.
 
-    The typical procedure is dividing the initial probability
-    (often called _epsilon_) by the number of trials. This is
+    The typical procedure is dividing the initial tail probability of noise
+    powers (often called _epsilon_) by the number of trials. This is
     often a good approximation, but it is not formally correct.
     If epsilon * n approaches 1, this approximation gives
     incorrect results.
@@ -59,6 +72,18 @@ def p_single_trial_from_p_multitrial(pn, n):
 
     p = 1 - (1 - P)^1/n
 
+    Parameters
+    ----------
+    pn : float or array of float (same size as p1)
+        The probability of at least one success in ``n`` trials, each with
+        probability ``p1``
+    n : int
+        The number of trials
+
+    Returns
+    -------
+    p1 : float or array of floats, same size as ``pn``
+        the probability of success in each trial.
     """
     if isinstance(n, Iterable):
         return np.array([p_single_trial_from_p_multitrial(pn, ni)
