@@ -30,7 +30,6 @@ def p_multitrial_from_single_trial(p1, n):
 
     Parameters
     ----------
-<<<<<<< HEAD
     p1 : float
         The significance at which we reject the null hypothesis on
         each single trial.
@@ -42,18 +41,6 @@ def p_multitrial_from_single_trial(p1, n):
     pn : float
         The significance at which we reject the null hypothesis
         after multiple trials
-=======
-    p1 : float or array of floats
-        The success probability in each trial
-    n : int
-        The number of trials
-
-    Return value
-    ------------
-    pn : float or array of float (same size as p1)
-        The probability of at least one success in ``n`` trials, each with
-        probability ``p1``
->>>>>>> 403b66adce851af7aea50e312a7de03a1e19671b
     """
     return 1 - (1 - np.longdouble(p1))**np.longdouble(n)
 
