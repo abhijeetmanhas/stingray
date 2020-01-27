@@ -215,6 +215,11 @@ def prepareh(h, nfft: List[int], rfftn=None):
     -------------------
     rfftn : function
         Substitute of `numpy.fft.rfftn`, provided by the user
+
+    Returns
+    -------
+    hfftconj : array of complex
+        The FFT-transformed, conjugate filter array
     """
     rfftn = rfftn or np.fft.rfftn
     return np.conj(rfftn(flip(np.conj(h)), nfft))
@@ -335,6 +340,39 @@ def olsStep(x,
 
     N.B. These are the only modes supported by this module. Others are
     *UNSUPPORTED*.
+
+    Parameters
+    ----------
+    x : float/complex array
+        This is the array that we need to convolve
+    hfftconj : complex array
+        filter array, pre-transformed by ``prepareh``
+    starts: list of ints
+        Starting indeces for each dimension
+    lengths: list of ints
+        Length of interval in each dimension
+    nfft: int
+        Length of the FFT
+    nh: tuple of int
+        Shape of filter array
+
+    Optional parameters
+    -------------------
+    rfftn : function, default None
+        Substitute of `numpy.fft.rfftn`, provided by the user
+    irfftn : function, default None
+        Substitute of `numpy.fft.irfftn`, provided by the user
+    mode : str
+        The mode of the convolution. The only accepted modes are
+        ``constant`` and ``reflect``
+    **kwargs : dict
+        Keyword arguments to be passed to ``np.pad``
+
+    Returns
+    -------
+    outarray : array of complex
+        The convolved array. The dimension depends on the ``mode``.
+        See the docs of `scipy.convolve`
     """
     assert len(x.shape) == len(hfftconj.shape)
     assert len(x.shape) == len(starts) and len(x.shape) == len(lengths)
@@ -371,29 +409,64 @@ def ols(x, h, size=None, nfft=None, out=None, rfftn=None, irfftn=None,
     `x` and `h` can be multidimensional (1D and 2D are extensively tested), but
     must have the same rank, i.e., `len(x.shape) == len(h.shape)`.
 
-    `size` is a list of integers that specifies the sizes of the output that will
-    be computed in each iteration of the overlap-save algorithm. It must be the
-    same length as `x.shape` and `h.shape`. If not provided, defaults to
-    `[4 * x for x in h.shape]`, i.e., will break up the output into chunks whose
-    size is governed by the size of `h`.
-
-    `nfft` is a list of integers that specifies the size of the FFT to be used.
-    It's length must be equal to the length of `size`. Each element of this list
-    must be large enough to store the *linear* convolution, i.e.,
-    `all([nfft[i] >= size[i] + h.shape[i] - 1 for i in range(len(nfft))])`
-    must be `True`. Set this to a multiple of small prime factors, which is the
-    default.
-
     If provided, the results will be stored in `out`. This is useful for
     memory-mapped outputs, e.g.
 
     If not provided, `rfftn` and `irfftn` default to those in `numpy.fft`. Other
     implementations matching Numpy's, such as PyFFTW, will also work.
 
-    By default, `mode='constant'` assumes elements of `x` outside its boundaries
-    are 0, which matches the textbook definition of convolution. `mode='reflect'`
-    is also supported. It should be straightforward to add support for other modes
-    supported by `np.pad`. Keyword arguments in `**kwargs` are passed to `np.pad`.
+    Parameters
+    ----------
+    x : float/complex array
+        This is the array that we need to convolve
+    h : complex array
+        Filter array. Must have the same rank as x, i.e.
+        `len(x.shape) == len(h.shape)`
+
+    Other Parameters
+    ----------------
+    size: list of ints
+        List of integers that specifies the sizes of the output that will
+        be computed in each iteration of the overlap-save algorithm. It must
+        be the same length as `x.shape` and `h.shape`. If not provided,
+        defaults to `[4 * x for x in h.shape]`, i.e., will break up the output
+        into chunks whose size is governed by the size of `h`.
+    lengths: list of ints
+        Length of interval in each dimension
+    nfft: int
+        List of integers that specifies the size of the FFT to be used.
+        Its length must be equal to the length of `size`. Each element of this
+        list must be large enough to store the *linear* convolution, i.e.,
+        `all([nfft[i] >= size[i] + h.shape[i] - 1 for i in range(len(nfft))])`
+        must be `True`. Set this to a multiple of small prime factors, which
+        is the default.
+    nh: tuple of int
+        Shape of filter array
+
+    Optional parameters
+    -------------------
+    rfftn : function, default None
+        Substitute of `numpy.fft.rfftn`, provided by the user
+    irfftn : function, default None
+        Substitute of `numpy.fft.irfftn`, provided by the user
+    out : array, default None
+        If provided, the results are stored here. Useful, e.g., for
+        memory-mapped arrays.
+    mode : str
+        The mode of the convolution. The only accepted modes are
+        ``constant`` and ``reflect``. By default, `mode='constant'` assumes
+        elements of `x` outside its boundaries are 0, which matches the
+        textbook definition of convolution. `mode='reflect'` is also
+        supported. It should be straightforward to add support for other modes
+        supported by `np.pad`.
+    **kwargs : dict
+        Keyword arguments to be passed to ``np.pad``
+
+    Returns
+    -------
+    outarray : array of complex
+        The convolved array. The dimension depends on the ``mode``.
+        See the docs of `scipy.convolve`
     """
     assert len(x.shape) == len(h.shape)
     size = size or [4 * x for x in h.shape]
